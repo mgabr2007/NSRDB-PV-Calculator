@@ -103,15 +103,16 @@ if uploaded_file is not None:
         st.write(solar_data.head())  # Display the first few rows for debugging
 
         # Detect and display the time interval of the data
-        time_diffs = solar_data.index.to_series().diff().dropna()
-        time_interval = time_diffs.mode().iloc[0] if not time_diffs.empty else pd.Timedelta(seconds=0)
-        st.write(f"Data Interval: {time_interval}")
+        total_time = solar_data.index[-1] - solar_data.index[0]
+        num_intervals = len(solar_data) - 1
+        average_interval = total_time / num_intervals if num_intervals > 0 else pd.Timedelta(seconds=0)
+        st.write(f"Data Interval: {average_interval}")
 
     if st.button('Calculate Energy'):
         if latitude is not None and longitude is not None:
             if not solar_data.empty:
                 energy_generated = calculate_energy(solar_data, latitude, longitude, area, azimuth, efficiency)
-                st.metric(label="Average Energy Generated", value=f"{energy_generated:.2f} Wh", delta=f"Interval: {time_interval}")
+                st.metric(label="Average Energy Generated", value=f"{energy_generated:.2f} Wh", delta=f"Interval: {average_interval}")
             else:
                 st.error('No data available in the uploaded file.')
         else:
