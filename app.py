@@ -21,16 +21,16 @@ def get_response_json_and_handle_errors(response: requests.Response) -> dict:
         st.stop()
     return response_json
 
-def main(api_key, email, coordinates, names):
+def main(api_key, email, coordinates, years):
     BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-download.csv?"
 
-    for name in names:
-        st.write(f"Processing name: {name}")
+    for year in years:
+        st.write(f"Processing year: {year}")
         for coord in coordinates:
             params = {
                 'api_key': api_key,
                 'email': email,
-                'names': name,
+                'names': year,
                 'attributes': 'ghi,dni,dhi,air_temperature,dew_point,relative_humidity,wind_speed,wind_direction,surface_pressure,toa_irradiance,clearsky_dhi,clearsky_dni,clearsky_ghi,cloud_type,fill_flag,footprint,ozone,surface_albedo,total_precipitable_water',
                 'interval': '60',
                 'wkt': f"POINT({coord['lon']} {coord['lat']})"
@@ -52,7 +52,7 @@ st.title('Solar Data Downloader')
 api_key = st.text_input('API Key', type='password')
 email = st.text_input('Email')
 coordinates_input = st.text_area('Coordinates (latitude,longitude pairs separated by newlines)', '40.7128,-74.0060\n34.0522,-118.2437')
-names = st.multiselect('Names', ['tdy', 'tdy-2014', 'tdy-2022'], ['tdy'])
+years = st.multiselect('Years', list(range(1998, 2021)), [2020])
 
 if st.button('Download Data'):
     try:
@@ -64,6 +64,6 @@ if st.button('Download Data'):
         if not coordinates_list:
             st.error('No valid coordinates provided.')
         else:
-            main(api_key, email, coordinates_list, names)
+            main(api_key, email, coordinates_list, years)
     except Exception as e:
         st.error(f'Error processing coordinates: {e}')
