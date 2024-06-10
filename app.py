@@ -104,7 +104,7 @@ if uploaded_file is not None:
 
         # Detect and display the time interval of the data
         time_diffs = solar_data.index.to_series().diff().dropna()
-        time_interval = time_diffs.mode().iloc[0]
+        time_interval = time_diffs.mode().iloc[0] if not time_diffs.empty else pd.Timedelta(seconds=0)
         st.write(f"Data Interval: {time_interval}")
 
     if st.button('Calculate Energy'):
