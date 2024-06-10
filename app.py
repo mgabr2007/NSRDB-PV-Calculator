@@ -7,6 +7,8 @@ def calculate_energy(data, area, azimuth):
         st.error("No data available to calculate energy.")
         return 0
 
+    st.write("Columns in data:", data.columns.tolist())  # Display column names for debugging
+    
     ghi = data['GHI'].mean()
     dni = data['DNI'].mean()
     dhi = data['DHI'].mean()
@@ -40,10 +42,10 @@ if st.button('Calculate Energy'):
     if uploaded_file is not None:
         solar_data = load_data(uploaded_file)
         if not solar_data.empty:
+            st.write(solar_data.head())  # Display the first few rows for debugging
             energy_generated = calculate_energy(solar_data, area, azimuth)
             st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
         else:
             st.error('No data available in the uploaded file.')
     else:
         st.error('Please upload a CSV file containing solar data.')
-
