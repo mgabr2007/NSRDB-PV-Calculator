@@ -7,14 +7,11 @@ def calculate_energy(data, area, azimuth):
         st.error("No data available to calculate energy.")
         return 0
     
-    # Display column names for debugging
-    st.write("Columns in data:", data.columns.tolist())
-
-    # Adjusting to the correct column names with units
+    # Adjusting to the correct column names
     try:
-        ghi = data['GHI (W/m^2)'].mean()
-        dni = data['DNI (W/m^2)'].mean()
-        dhi = data['DHI (W/m^2)'].mean()
+        ghi = data['GHI'].mean()
+        dni = data['DNI'].mean()
+        dhi = data['DHI'].mean()
     except KeyError as e:
         st.error(f"Column not found: {e}")
         return 0
