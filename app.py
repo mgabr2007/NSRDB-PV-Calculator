@@ -6,12 +6,19 @@ def calculate_energy(data, area, azimuth):
     if data.empty:
         st.error("No data available to calculate energy.")
         return 0
+    
+    # Display column names for debugging
+    st.write("Columns in data:", data.columns.tolist())
 
     # Adjusting to the correct column names with units
-    ghi = data['GHI Units'].mean()
-    dni = data['DNI Units'].mean()
-    dhi = data['DHI Units'].mean()
-    
+    try:
+        ghi = data['GHI (W/m^2)'].mean()
+        dni = data['DNI (W/m^2)'].mean()
+        dhi = data['DHI (W/m^2)'].mean()
+    except KeyError as e:
+        st.error(f"Column not found: {e}")
+        return 0
+
     # Calculate the effective irradiance on the vertical facade
     azimuth_radians = math.radians(azimuth)
     
@@ -48,4 +55,3 @@ if st.button('Calculate Energy'):
             st.error('No data available in the uploaded file.')
     else:
         st.error('Please upload a CSV file containing solar data.')
-
