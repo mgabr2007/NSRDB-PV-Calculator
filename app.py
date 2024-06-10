@@ -43,16 +43,24 @@ def fetch_solar_data(api_key, email, coordinates, years):
 
             response = requests.get(BASE_URL, params=params)
             data = get_response_json_and_handle_errors(response)
-            all_data.append(pd.DataFrame(data['outputs']['data']))
             
+            if 'outputs' in data and 'data' in data['outputs']:
+                all_data.append(pd.DataFrame(data['outputs']['data']))
+            else:
+                st.error(f"No data found in response for coordinate {coord}")
+
             st.write(f"Data for {coord['lat']}, {coord['lon']} retrieved successfully.")
             
             # Delay for 1 second to prevent rate limiting
             time.sleep(1)
     
-    return pd.concat(all_data)
+    return pd.concat(all_data) if all_data else pd.DataFrame()
 
 def calculate_energy(data, area, azimuth):
+    if data.empty:
+        st.error("No data available to calculate energy.")
+        return 0
+
     ghi = data['ghi'].mean()
     dni = data['dni'].mean()
     dhi = data['dhi'].mean()
@@ -84,7 +92,10 @@ if st.button('Calculate Energy'):
             st.error('No valid coordinates provided.')
         else:
             solar_data = fetch_solar_data(api_key, email, coordinates_list, years)
-            energy_generated = calculate_energy(solar_data, area, azimuth)
-            st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
+            if not solar_data.empty:
+                energy_generated = calculate_energy(solar_data, area, azimuth)
+                st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
+            else:
+                st.error('No data retrieved from the API.')
     except Exception as e:
         st.error(f'Error processing data: {e}')
