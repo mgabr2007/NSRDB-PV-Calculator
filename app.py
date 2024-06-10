@@ -60,7 +60,7 @@ longitude = None
 
 if map_data:
     st.write("Map data available:", map_data)  # Debugging line to display map_data
-    if 'last_clicked' in map_data:
+    if map_data.get('last_clicked') is not None:
         latitude = map_data['last_clicked']['lat']
         longitude = map_data['last_clicked']['lng']
         st.write(f"Selected Location: Latitude {latitude}, Longitude {longitude}")
