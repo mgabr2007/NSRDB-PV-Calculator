@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import math
+import folium
+from streamlit_folium import st_folium
 
 def calculate_energy(data, area, azimuth):
     if data.empty:
@@ -40,6 +42,23 @@ st.title('Solar Energy Potential Calculator')
 area = st.number_input('Facade Area (m²)', min_value=1.0, value=10.0)
 azimuth = st.number_input('Facade Azimuth (degrees)', min_value=0.0, max_value=360.0, value=180.0)
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv")
+
+# Initialize map
+m = folium.Map(location=[20, 0], zoom_start=2)
+
+# Add a marker to the map with default location
+marker = folium.Marker(location=[20, 0], draggable=True)
+marker.add_to(m)
+
+# Display the map and get the selected location
+st.write("Click on the map to select a location:")
+map_data = st_folium(m, width=700, height=500)
+
+# Get the selected location
+if map_data and 'last_clicked' in map_data:
+    latitude = map_data['last_clicked']['lat']
+    longitude = map_data['last_clicked']['lng']
+    st.write(f"Selected Location: Latitude {latitude}, Longitude {longitude}")
 
 if st.button('Calculate Energy'):
     if uploaded_file is not None:
