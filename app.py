@@ -33,7 +33,7 @@ def main(api_key, email, coordinates, names):
     
     for name in names:
         st.write(f"Processing name: {name}")
-        for id, coord in enumerate(coordinates):
+        for coord in coordinates:
             input_data['names'] = [name]
             input_data['lat'] = coord['lat']
             input_data['lon'] = coord['lon']
@@ -56,9 +56,19 @@ st.title('Solar Data Downloader')
 # Streamlit inputs
 api_key = st.text_input('API Key', type='password')
 email = st.text_input('Email')
-coordinates_input = st.text_area('Coordinates (latitude,longitude pairs separated by commas)', '40.7128,-74.0060')
+coordinates_input = st.text_area('Coordinates (latitude,longitude pairs separated by newlines)', '40.7128,-74.0060\n34.0522,-118.2437')
 names = st.multiselect('Names', ['tdy', 'tdy-2014', 'tdy-2022'], ['tdy'])
 
 if st.button('Download Data'):
-    coordinates_list = [{'lat': float(coord.split(',')[0]), 'lon': float(coord.split(',')[1])} for coord in coordinates_input.split(',')]
-    main(api_key, email, coordinates_list, names)
+    try:
+        coordinates_list = []
+        for line in coordinates_input.split('\n'):
+            lat_lon = line.split(',')
+            if len(lat_lon) == 2:
+                coordinates_list.append({'lat': float(lat_lon[0].strip()), 'lon': float(lat_lon[1].strip())})
+        if not coordinates_list:
+            st.error('No valid coordinates provided.')
+        else:
+            main(api_key, email, coordinates_list, names)
+    except Exception as e:
+        st.error(f'Error processing coordinates: {e}')
