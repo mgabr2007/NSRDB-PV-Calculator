@@ -1,6 +1,8 @@
 import streamlit as st
 import requests
+import pandas as pd
 import time
+import math
 
 def get_response_json_and_handle_errors(response: requests.Response) -> dict:
     if response.status_code != 200:
@@ -21,10 +23,10 @@ def get_response_json_and_handle_errors(response: requests.Response) -> dict:
         st.stop()
     return response_json
 
-def main(api_key, email, coordinates, years):
+def fetch_solar_data(api_key, email, coordinates, years):
     BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-download.json?"
-
-    attributes = 'air_temperature,clearsky_dhi,clearsky_dni,clearsky_ghi,cloud_type,dew_point,dhi,dni,fill_flag,ghi,relative_humidity,solar_zenith_angle,surface_albedo,surface_pressure,total_precipitable_water,wind_direction,wind_speed'
+    attributes = 'ghi,dni,dhi'
+    all_data = []
 
     for year in years:
         st.write(f"Processing year: {year}")
@@ -41,22 +43,37 @@ def main(api_key, email, coordinates, years):
 
             response = requests.get(BASE_URL, params=params)
             data = get_response_json_and_handle_errors(response)
+            all_data.append(pd.DataFrame(data['outputs']['data']))
             
             st.write(f"Data for {coord['lat']}, {coord['lon']} retrieved successfully.")
-            st.write(data)  # or process the data as needed
-
+            
             # Delay for 1 second to prevent rate limiting
             time.sleep(1)
+    
+    return pd.concat(all_data)
 
-st.title('Solar Data Downloader')
+def calculate_energy(data, area, azimuth):
+    ghi = data['ghi'].mean()
+    dni = data['dni'].mean()
+    dhi = data['dhi'].mean()
+    
+    azimuth_radians = math.radians(azimuth)
+    incident_irradiance = ghi * math.cos(azimuth_radians) + dni * math.sin(azimuth_radians) + dhi
+
+    energy_generated = incident_irradiance * area
+    return energy_generated
+
+st.title('Solar Energy Potential Calculator')
 
 # Streamlit inputs
 api_key = st.text_input('API Key', type='password')
 email = st.text_input('Email')
 coordinates_input = st.text_area('Coordinates (latitude,longitude pairs separated by newlines)', '40.7128,-74.0060\n34.0522,-118.2437')
 years = st.multiselect('Years', list(range(1998, 2021)), [2020])
+area = st.number_input('Facade Area (m²)', min_value=1.0, value=10.0)
+azimuth = st.number_input('Facade Azimuth (degrees)', min_value=0.0, max_value=360.0, value=180.0)
 
-if st.button('Download Data'):
+if st.button('Calculate Energy'):
     try:
         coordinates_list = []
         for line in coordinates_input.split('\n'):
@@ -66,6 +83,8 @@ if st.button('Download Data'):
         if not coordinates_list:
             st.error('No valid coordinates provided.')
         else:
-            main(api_key, email, coordinates_list, years)
+            solar_data = fetch_solar_data(api_key, email, coordinates_list, years)
+            energy_generated = calculate_energy(solar_data, area, azimuth)
+            st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
     except Exception as e:
-        st.error(f'Error processing coordinates: {e}')
+        st.error(f'Error processing data: {e}')
