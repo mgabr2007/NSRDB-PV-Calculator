@@ -106,7 +106,7 @@ if uploaded_file is not None:
         if latitude is not None and longitude is not None:
             if not solar_data.empty:
                 energy_generated = calculate_energy(solar_data, latitude, longitude, area, azimuth, efficiency)
-                st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
+                st.metric(label="Average Energy Generated (Wh)", value=f"{energy_generated:.2f}")
             else:
                 st.error('No data available in the uploaded file.')
         else:
