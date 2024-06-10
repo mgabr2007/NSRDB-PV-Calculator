@@ -55,6 +55,9 @@ st.write("Click on the map to select a location:")
 map_data = st_folium(m, width=700, height=500)
 
 # Get the selected location
+latitude = None
+longitude = None
+
 if map_data and 'last_clicked' in map_data:
     latitude = map_data['last_clicked']['lat']
     longitude = map_data['last_clicked']['lng']
@@ -62,12 +65,15 @@ if map_data and 'last_clicked' in map_data:
 
 if st.button('Calculate Energy'):
     if uploaded_file is not None:
-        solar_data = load_data(uploaded_file)
-        if not solar_data.empty:
-            st.write(solar_data.head())  # Display the first few rows for debugging
-            energy_generated = calculate_energy(solar_data, area, azimuth)
-            st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
+        if latitude is not None and longitude is not None:
+            solar_data = load_data(uploaded_file)
+            if not solar_data.empty:
+                st.write(solar_data.head())  # Display the first few rows for debugging
+                energy_generated = calculate_energy(solar_data, area, azimuth)
+                st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
+            else:
+                st.error('No data available in the uploaded file.')
         else:
-            st.error('No data available in the uploaded file.')
+            st.error('Please select a location on the map.')
     else:
         st.error('Please upload a CSV file containing solar data.')
