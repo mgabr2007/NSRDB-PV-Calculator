@@ -103,7 +103,8 @@ if uploaded_file is not None:
         st.write(solar_data.head())  # Display the first few rows for debugging
 
         # Detect and display the time interval of the data
-        time_interval = solar_data.index.to_series().diff().mode().iloc[0]
+        time_diffs = solar_data.index.to_series().diff().dropna()
+        time_interval = time_diffs.mode().iloc[0]
         st.write(f"Data Interval: {time_interval}")
 
     if st.button('Calculate Energy'):
