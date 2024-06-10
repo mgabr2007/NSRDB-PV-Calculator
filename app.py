@@ -58,7 +58,7 @@ The calculation uses the following equation to estimate the average energy gener
 
 where:
 
-\[ \text{Incident Irradiance} = \text{DNI} \times \cos(\text{Azimuth in Radians} - \pi) + \text{DHI} \]
+\[ \text{Incident Irradiance} = \text{DNI} \times \max(\cos(\text{Azimuth in Radians} - \pi), 0) + \text{DHI} \]
 
 The `max` function ensures that only positive contributions are considered when the facade is facing the sun.
 """)
