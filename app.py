@@ -22,7 +22,9 @@ def get_response_json_and_handle_errors(response: requests.Response) -> dict:
     return response_json
 
 def main(api_key, email, coordinates, years):
-    BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-download.csv?"
+    BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-download.json?"
+
+    attributes = 'air_temperature,clearsky_dhi,clearsky_dni,clearsky_ghi,cloud_type,dew_point,dhi,dni,fill_flag,ghi,relative_humidity,solar_zenith_angle,surface_albedo,surface_pressure,total_precipitable_water,wind_direction,wind_speed'
 
     for year in years:
         st.write(f"Processing year: {year}")
@@ -31,7 +33,7 @@ def main(api_key, email, coordinates, years):
                 'api_key': api_key,
                 'email': email,
                 'names': year,
-                'attributes': 'ghi,dni,dhi,air_temperature,dew_point,relative_humidity,wind_speed,wind_direction,surface_pressure,toa_irradiance,clearsky_dhi,clearsky_dni,clearsky_ghi,cloud_type,fill_flag,footprint,ozone,surface_albedo,total_precipitable_water',
+                'attributes': attributes,
                 'interval': '60',
                 'wkt': f"POINT({coord['lon']} {coord['lat']})"
             }
