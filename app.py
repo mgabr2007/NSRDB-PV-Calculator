@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import pandas as pd
 import time
 
 def get_response_json_and_handle_errors(response: requests.Response) -> dict:
@@ -11,8 +10,9 @@ def get_response_json_and_handle_errors(response: requests.Response) -> dict:
 
     try:
         response_json = response.json()
-    except:
+    except Exception as e:
         st.error(f"Response couldn't be parsed as JSON: {response.text}")
+        st.error(f"Exception: {e}")
         st.stop()
 
     if 'errors' in response_json and len(response_json['errors']) > 0:
@@ -22,31 +22,26 @@ def get_response_json_and_handle_errors(response: requests.Response) -> dict:
     return response_json
 
 def main(api_key, email, coordinates, names):
-    BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/nsrdb_msg_v1_0_0_tdy_download.json?"
-    input_data = {
-        'attributes': 'clearsky_dhi,clearsky_dni,air_temperature,clearsky_ghi,cloud_fill_flag,cloud_type,dew_point,dhi,dni,fill_flag,ghi,relative_humidity,solar_zenith_angle,surface_albedo,surface_pressure,total_precipitable_water,wind_direction,wind_speed',
-        'interval': '60',
-        'include_leap_day': 'true',
-        'api_key': api_key,
-        'email': email,
-    }
-    
+    BASE_URL = "https://developer.nrel.gov/api/nsrdb/v2/solar/psm3-download.csv?"
+
     for name in names:
         st.write(f"Processing name: {name}")
         for coord in coordinates:
-            input_data['names'] = [name]
-            input_data['lat'] = coord['lat']
-            input_data['lon'] = coord['lon']
+            params = {
+                'api_key': api_key,
+                'email': email,
+                'names': name,
+                'attributes': 'ghi,dni,dhi,air_temperature,dew_point,relative_humidity,wind_speed,wind_direction,surface_pressure,toa_irradiance,clearsky_dhi,clearsky_dni,clearsky_ghi,cloud_type,fill_flag,footprint,ozone,surface_albedo,total_precipitable_water',
+                'interval': '60',
+                'wkt': f"POINT({coord['lon']} {coord['lat']})"
+            }
             st.write(f'Making request for coordinate {coord}...')
 
-            headers = {
-                'x-api-key': api_key
-            }
-            data = get_response_json_and_handle_errors(requests.post(BASE_URL, json=input_data, headers=headers))
-            download_url = data['outputs']['downloadUrl']
-            st.write(data['outputs']['message'])
-            st.write(f"Data can be downloaded from this url: {download_url}")
-            st.write(f"Processed coordinate {coord}.")
+            response = requests.get(BASE_URL, params=params)
+            data = get_response_json_and_handle_errors(response)
+            
+            st.write(f"Data for {coord['lat']}, {coord['lon']} retrieved successfully.")
+            st.write(data)  # or process the data as needed
 
             # Delay for 1 second to prevent rate limiting
             time.sleep(1)
