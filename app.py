@@ -28,9 +28,9 @@ def calculate_energy(data, area, azimuth, efficiency):
     energy_generated = incident_irradiance * area * efficiency
     return energy_generated
 
-def load_data(file_path):
+def load_data(file):
     try:
-        data = pd.read_csv(file_path)
+        data = pd.read_csv(file)
         return data
     except Exception as e:
         st.error(f"Error loading data: {e}")
@@ -91,17 +91,20 @@ if map_data:
         longitude = map_data['last_clicked']['lng']
         st.write(f"Selected Location: Latitude {latitude}, Longitude {longitude}")
 
-if st.button('Calculate Energy'):
-    if uploaded_file is not None:
+if uploaded_file is not None:
+    solar_data = load_data(uploaded_file)
+    if not solar_data.empty:
+        st.write("Uploaded file content:")
+        st.write(solar_data.head())  # Display the first few rows for debugging
+
+    if st.button('Calculate Energy'):
         if latitude is not None and longitude is not None:
-            solar_data = load_data(uploaded_file)
             if not solar_data.empty:
-                st.write(solar_data.head())  # Display the first few rows for debugging
                 energy_generated = calculate_energy(solar_data, area, azimuth, efficiency)
                 st.write(f"Average Energy Generated: {energy_generated:.2f} Wh")
             else:
                 st.error('No data available in the uploaded file.')
         else:
             st.error('Please select a location on the map.')
-    else:
-        st.error('Please upload a CSV file containing solar data.')
+else:
+    st.error('Please upload a CSV file containing solar data.')
