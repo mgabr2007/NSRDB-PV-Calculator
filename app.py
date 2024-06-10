@@ -58,10 +58,12 @@ map_data = st_folium(m, width=700, height=500)
 latitude = None
 longitude = None
 
-if map_data and 'last_clicked' in map_data:
-    latitude = map_data['last_clicked']['lat']
-    longitude = map_data['last_clicked']['lng']
-    st.write(f"Selected Location: Latitude {latitude}, Longitude {longitude}")
+if map_data:
+    st.write("Map data available:", map_data)  # Debugging line to display map_data
+    if 'last_clicked' in map_data:
+        latitude = map_data['last_clicked']['lat']
+        longitude = map_data['last_clicked']['lng']
+        st.write(f"Selected Location: Latitude {latitude}, Longitude {longitude}")
 
 if st.button('Calculate Energy'):
     if uploaded_file is not None:
